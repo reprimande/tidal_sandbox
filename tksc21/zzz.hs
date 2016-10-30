@@ -19,7 +19,7 @@ zzzSlang = OscSlang {
   path = "/zzz",
   preamble = [],
   namedParams = True,
-  timestamp = BundleStamp
+  timestamp = NoStamp
   }
 
 zzzBackend = do
