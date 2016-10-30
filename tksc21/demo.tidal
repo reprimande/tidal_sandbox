@@ -1,0 +1,101 @@
+let ps = [ I "ch" (Just 0), I "note" (Just 0), F "cv" (Just 0), I "gate" (Just 0), I "length" (Just 0), S "device" (Just "es") ]
+    zzzShape = (zzz ps)
+    ch = makeI zzzShape "ch"
+    note = makeI zzzShape "note"
+    cv = makeF zzzShape "cv"
+    gate = makeI zzzShape "gate"
+    length = makeI zzzShape "length"
+    device = makeS zzzShape "device"
+
+m1 <- zzzStream ps
+m2 <- zzzStream ps
+m3 <- zzzStream ps
+m4 <- zzzStream ps
+m5 <- zzzStream ps
+m6 <- zzzStream ps
+m7 <- zzzStream ps
+m8 <- zzzStream ps
+
+cps(1.3)
+
+m1 $ randcat [
+  ch "4 4 4",
+  ch "3 5",
+  ch "3 4 5"
+] # gate "1"
+
+m1 $ stack [
+  gate "1*4 [1*6]" # note "24" #ch "1",
+  gate "~ ~ 1 ~ ~ 1 1" # note "72 68 66" # ch "2",
+  gate "1*3 [1*6]" # ch "4",
+  foldEvery [6, 14] (density 1.8) $ slow 2 $ gate "~ ~ ~ 1" # ch "5",
+  gate "1*8" # ch "6" # cv "0.3 0.5 1 0.2"
+]
+
+m1 silence
+
+m1 $ stack [
+  note "60 63 ~ 69 ~ 69 65 63" # gate "1" # ch "1",
+  slow 16 $ note "72 75 71 74" # gate "1" # ch "2",
+  note "75 ~ 78 ~ 71 ~ 78 79" # gate "1" # ch "3",
+  gate "1 1" # ch "4",
+  gate "1 1 1 ~ 1 1 1 ~" # ch "6" # cv "0.05*2 0.2 ~ 0.05*2 0.2 ~ "
+  ]
+
+
+m1 $ stack [
+  note "36 ~ ~ 36 ~ ~ 41 43" # gate "1" # ch "1",
+  note "~ 60 ~ ~ 63 ~ ~ [60*3]" # gate "1" # ch "2",
+  gate "1 ~ ~ 1 ~ ~ 1 1" # ch "4",
+  gate "~ ~ ~ ~ ~ ~ 1 ~" # ch "5",
+  gate "1*8" # ch "6"
+  ]
+
+m1 $
+stack [
+  gate "1 ~ ~ ~ 1 ~ ~ 1" # note "24 26 26" # ch "1",
+  gate "1 ~ 1 ~ ~ 1 ~ [1 1]" # note "72 72 72 75" # ch "2",
+  gate "1 ~ ~ 1 ~ ~ 1 ~" # ch "4",
+  gate "~ ~ ~ ~ ~ ~ 1 ~" # ch "5",
+  gate "1 1 1 1 1 1 1 1" # ch "6"
+  ]
+
+m1 $
+every 12 (degrade) $
+every 3 (brak) $
+every 5 (0.3 <~) $
+every 4 (0.6 ~>) $
+every 2 (density 1.2) $
+every 3 (rev) $ stack [
+  gate "1 ~ 1 1 ~ 1 ~ 1" # note "33 26 46 20 32 21" # ch "1",
+  gate "1 1 ~ 1 1 ~ 1 1" # note (offadd 0.3 3 "64 61 68 62") # ch "2",
+  every 5 (density 3) $ every 6 (slow 3) $ gate "1 ~ ~ 1 ~ [1 1] 1 ~" # ch "4",
+  every 9 (density 9) $ gate "~ ~ ~ ~ ~ ~ 1 ~" # ch "5",
+  gate "1*8" # ch "6"
+  ]
+
+m1 $
+whenmod 4 2 (slow 1.5) $
+whenmod 8 4 (rev) $
+stack [
+  gate "1 ~ ~ 1 ~ ~ 1 ~" # note "24 27" # ch "1",
+  every 3 (rev) $ every 5 (density 3) $ gate "1 ~ 1 ~ ~ 1 ~ 1" # note "63 60 59 72" # ch "2",
+  every 2 (density 1.8) $ gate "1 ~ ~ 1 ~ ~ 1 ~ ~ 1" # ch "4",
+  gate "[1 1] ~ [1 1] ~ 1" # ch "6"
+  ]
+
+m1 $
+stack [
+  every 2 (density 1.5) $ gate "1 ~ ~ 1 ~ ~ 1 [1 1]" # ch "4",
+  slow 2 $ gate "~ ~ ~ ~ ~ 1 ~ ~" # ch "2",
+  gate "1 1 [1*2] 1 1 1 1 [1*4]" # ch "3",
+  note "0 2 4 5 7 9 11 12" # gate "1" # ch "1"
+  ]
+
+m2 $ density 2 $cv "1.0 0.5 -0.5 -1" # ch "1" # device "m"
+
+m1 silence
+m2 silence
+
+hush
+
