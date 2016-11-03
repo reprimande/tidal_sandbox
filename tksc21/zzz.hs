@@ -15,18 +15,18 @@ zzz ps = Shape {
   latency = 0
   }
 
-zzzSlang = OscSlang {
-  path = "/zzz",
+zzzSlang path = OscSlang {
+  path = path,
   preamble = [],
   namedParams = True,
   timestamp = NoStamp
   }
 
-zzzBackend = do
-  s <- makeConnection "127.0.0.1" 12345 zzzSlang
+zzzBackend path port = do
+  s <- makeConnection "127.0.0.1" port (zzzSlang path)
   return $ Backend s (\_ _ _ -> return ())
 
-zzzStream ps = do let shape = (zzz ps)
-                  backend <- zzzBackend
-                  z <- stream backend shape
-                  return z
+zzzStream path port ps = do let shape = (zzz ps)
+                            backend <- zzzBackend path port
+                            z <- stream backend shape
+                            return z

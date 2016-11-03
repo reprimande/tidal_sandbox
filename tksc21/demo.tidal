@@ -1,22 +1,30 @@
-let ps = [ I "ch" (Just 0), I "note" (Just 0), F "cv" (Just 0), I "gate" (Just 0), I "length" (Just 0), S "device" (Just "es") ]
+let ps = [
+      I "ch" (Just 0),
+      I "note" (Just 0),
+      F "cv" (Just 0),
+      I "gate" (Just 0),
+      I "length" (Just 0),
+      F "slew" (Just 0),
+      S "device" (Just "es") ]
     zzzShape = (zzz ps)
     ch = makeI zzzShape "ch"
     note = makeI zzzShape "note"
     cv = makeF zzzShape "cv"
     gate = makeI zzzShape "gate"
     length = makeI zzzShape "length"
+    slew = makeF zzzShape "slew"
     device = makeS zzzShape "device"
 
-m1 <- zzzStream ps
-m2 <- zzzStream ps
-m3 <- zzzStream ps
-m4 <- zzzStream ps
-m5 <- zzzStream ps
-m6 <- zzzStream ps
-m7 <- zzzStream ps
-m8 <- zzzStream ps
+m1 <- zzzStream "/zzz" 12345 ps
+m2 <- zzzStream "/zzz" 12345 ps
+m3 <- zzzStream "/zzz" 12345 ps
+m4 <- zzzStream "/zzz" 12345 ps
+m5 <- zzzStream "/zzz" 12345 ps
+m6 <- zzzStream "/zzz" 12345 ps
+m7 <- zzzStream "/zzz" 12345 ps
+m8 <- zzzStream "/zzz" 12345 ps
 
-cps(1.3)
+cps(1)
 
 m1 $ randcat [
   ch "4 4 4",
@@ -24,9 +32,84 @@ m1 $ randcat [
   ch "3 4 5"
 ] # gate "1"
 
+
+m5 $
+every 6 (within (0, 0.25) (stut 3 0.4 0.5)) $
+every 4 (slow 2) $
+randcat [
+  gate "1 1 1 1 ~ ~ ~ ~",
+  gate "1 ~ 1 1 ~ ~ 1 1",
+  gate "1 1 1 ~ 1 1",
+  gate "1 ~ ~ ~ ~ 1 ~ ~"
+  ]
+# note (choose [60,62,63,65,67,69,70,36,40]) # ch "2"
+
+
+# note (choose [72, 74, 76, 77, 79, 81, 83, 84, 86, 88, 24, 36, 40]) # ch "2"
+
+
+m1 $
+foldEvery [2, 3, 5] (slow 1.5) $
+foldEvery [3,7] (0.25 <~) $
+stack [
+  gate "1 ~ 1 ~ ~ 1 ~ 1" # ch "4",
+  gate "~ ~ ~ 1" # ch "5",
+  every 12 (stut 3 0.2 0.3) $ degradeBy 0.4 $ gate "1*8" # ch "6" # cv (choose [0.1,0.2,0.3])
+  ]
+
+
+
+m2 $ every 6 (stut 6 0.2 0.3) $ every 3 (density 1.5) $ note "24 ~ ~ 24 ~ ~ 35 47" # ch "1" # gate "1"
+
+m2 silence
+
+m2 $
+degradeBy 0.2 $
+every 2 (stut 6 0.6 0.5) $
+gate "1*4" # ch (choose [4,5,6])
+
+cps(1.2)
+
+
+
+m1 $ note "36 48 60 72" # gate "1" # ch "1" # slew "0.3"
+
+m1 $
+stack [
+  degradeBy 0.7 $ slowspread density [0.25,0.5,1,2,4,8,16] $ gate "1" # ch "1" # note (choose [12 .. 36]) # slew (choose [0.01, 0.05, 0.1]),
+  degradeBy 0.7 $ stut 3 0.4 0.5 $ foldEvery [3, 7] (density 1.5) $ slowspread density [0.25,0.5,1,2,4,8,16] $ gate "1" # ch "4",
+  degradeBy 0.8 $ stut 6 0.4 0.5 $ slow 2 $ slowspread density [0.25,0.5,1,2,4,8,16] $ gate "1" # ch "5",
+  degradeBy 0.8 $ stut 3 0.4 0.5 $ slowspread density [0.25,0.5,1,2,4,8,16] $ gate "1" # ch "6" # cv (choose [0.1,0.2,0.3,0.4,0.5])
+  ]
+
+m5 $ degradeBy 0.8 $ stut 5 0.6 0.5 $ slowspread density [0.25,0.5,1,2,4,8,16] $ gate "1" # ch "2" # note (choose [48 .. 72]) # slew (choose [0.01, 0.03, 0.05])
+
+mapM_ ($ silence) [m1,m2,m3,m4,m5]
+
+choose $ concat $ zipWith replicate [1,1,1] ["a", "b", "c"]
+
+m1 silence
+m2 silence
+m3 silence
+m4 silence
+m5 silence
+
+m2 $ stack [
+  gate "1 ~ 1 ~ ~ ~ [1*3] ~" # ch "4",
+  gate "~ ~ ~ ~ 1 ~ ~ 1" # ch "5",
+  degradeBy 0.3 $ gate "1*8" # ch "6"
+  ]
+
+m2 silence
+
+m1 $ stack [
+  note "18*2" # gate "1" # ch "1",
+  gate "1 1 1" # ch "4"
+  ]
+
 m1 $ stack [
   gate "1*4 [1*6]" # note "24" #ch "1",
-  gate "~ ~ 1 ~ ~ 1 1" # note "72 68 66" # ch "2",
+  -- gate "~ ~ 1 ~ ~ 1 1" # note "72 68 66" # ch "2",
   gate "1*3 [1*6]" # ch "4",
   foldEvery [6, 14] (density 1.8) $ slow 2 $ gate "~ ~ ~ 1" # ch "5",
   gate "1*8" # ch "6" # cv "0.3 0.5 1 0.2"
