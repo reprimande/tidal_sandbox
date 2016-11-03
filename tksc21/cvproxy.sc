@@ -10,15 +10,15 @@ s.boot;
 s.quit
 
 (
-SynthDef(\cv, {|ch=14, val=0|
-  OffsetOut.ar(ch, DC.ar(1) * val);
-}).add;
+SynthDef(\cv, {|ch=14, val=0, time=0|
+  OffsetOut.ar(ch, Lag.ar(DC.ar(1) * val, time));
+}).store;
 
 SynthDef(\es5, {|ch=20, val=1, time=0.001, t_trig=0|
   var e;
   e = EnvGen.ar(Env([0, 1, 1, 0], [0, time, 0]), gate: t_trig);
   OffsetOut.ar(ch, e * val);
-}).add;
+}).store;
 
 ~ch2val = { |ch| if (ch == 7) { -1 } {(1 << ch) / 127} };
 ~n2cv = { |n| (1 / 127) * n };
@@ -28,8 +28,8 @@ SynthDef(\es5, {|ch=20, val=1, time=0.001, t_trig=0|
 ~es3 = Array.fill(8, { |i| Synth(\cv, [\ch, 14 + i]) });
 
 OSCdef(\zzz, {|msg, time, addr, recvPort|
-  var d = (\ch: -1, \gate: -1, \note: -1, \device: 'es', \cv: false, \length: 0.001),
-      ch = -1, gate = -1, note = -1, device, cv, length;
+  var d = (\ch: -1, \gate: -1, \note: -1, \device: 'es', \cv: false, \length: 0.001, \slew: 0.0),
+      ch = -1, gate = -1, note = -1, device, cv, length, slew;
   msg.postln;
   msg[3..].pairsDo({ |k, v| d.put(k, v); });
   ch = d.at(\ch);
@@ -38,13 +38,14 @@ OSCdef(\zzz, {|msg, time, addr, recvPort|
   note = d.at(\note);
   device = d.at(\device);
   cv = d.at(\cv);
+  slew = d.at(\slew);
   if (device == 'm') {
-    ~motu[ch - 1].set(\val, cv);
+    ~motu[ch - 1].set(\val, cv, \time, slew);
   } {
     if (gate == 1, { ~es5[ch - 1].set(\t_trig, 1, \time, length); });
     if (note >= 0,
-      { ~es3[ch - 1].set(\val, ~n2cv.(note)); },
-      { ~es3[ch - 1].set(\val, cv); }
+      { ~es3[ch - 1].set(\val, ~n2cv.(note), \time, slew); },
+      { ~es3[ch - 1].set(\val, cv, \time, slew); }
     );
   }
 }, "/zzz", nil, 12345);
